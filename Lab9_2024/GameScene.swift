@@ -22,25 +22,22 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         sprite.size = CGSize(width: 50, height: 70)
         addChild(sprite)
         
-        opponentSprite = SKSpriteNode(imageNamed: "OpponentSprite")
-        opponentSprite.position = CGPoint(x: size.width / 2, y: size.height)
-        opponentSprite.size = CGSize(width: 50, height: 70)
-        addChild(opponentSprite)
+//        opponentSprite = SKSpriteNode(imageNamed: "OpponentSprite")
+//        opponentSprite.position = CGPoint(x: CGFloat(randomX), y: size.height)
+//        opponentSprite.size = CGSize(width: 50, height: 70)
+//        addChild(opponentSprite)
         
 //        let downMovement = SKAction.move(to: CGPoint(x: size.width / 2, y: 0), duration: 2)
 //        let upMovement = SKAction.move(to: CGPoint(x: size.width / 2, y: size.height), duration: 2)
 //        let movement = SKAction.sequence([downMovement, upMovement])
-        moveOpponent()
+        spawnOpponent()
         
         sprite.physicsBody = SKPhysicsBody(circleOfRadius: 50)
-        opponentSprite.physicsBody = SKPhysicsBody(circleOfRadius: 50)
+        //opponentSprite.physicsBody = SKPhysicsBody(circleOfRadius: 50)
         
         sprite.physicsBody?.categoryBitMask = spriteCategory1
         sprite.physicsBody?.contactTestBitMask = spriteCategory1
         sprite.physicsBody?.collisionBitMask = spriteCategory1
-        opponentSprite.physicsBody?.categoryBitMask = spriteCategory1
-        opponentSprite.physicsBody?.contactTestBitMask = spriteCategory1
-        opponentSprite.physicsBody?.collisionBitMask = spriteCategory1
         
         self.physicsWorld.contactDelegate = self
         
@@ -54,15 +51,46 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         print("Hit!")
         hitCounter += 1
         counterText.text = String(hitCounter)
+        
+        opponentSprite.removeFromParent()
+        spawnOpponent()
     }
     
-    func moveOpponent() {
-        let randomX = GKRandomSource.sharedRandom().nextInt(upperBound: Int(size.width))
-        let randomY = GKRandomSource.sharedRandom().nextInt(upperBound: Int(size.height))
-        let movement = SKAction.move(to: CGPoint(x: randomX, y: randomY), duration: 1)
+    func moveOpponent(x: Int) {
+        //let randomX = GKRandomSource.sharedRandom().nextInt(upperBound: Int(size.width))
+        //let randomY = GKRandomSource.sharedRandom().nextInt(upperBound: Int(size.height))
+        //let movement = SKAction.move(to: CGPoint(x: randomX, y: 0), duration: 5)
+        
+        let randomT = Double.random(in: 1..<5)
+        let movement = SKAction.move(to: CGPoint(x: x, y: 0), duration: randomT)
         opponentSprite.run(movement, completion: { [unowned self] in
-            self.moveOpponent()
+            //self.moveOpponent(x: x)
+            if hitCounter > 0 && opponentSprite.position == CGPoint(x: x, y: 0) {
+                hitCounter -= 1
+                counterText.text = String(hitCounter)
+                opponentSprite.removeFromParent()
+                spawnOpponent()
+            }
+            else {
+                opponentSprite.removeFromParent()
+                counterText.text = "Game Over!"
+            }
         })
+    }
+    
+    func spawnOpponent() {
+        let randomX = GKRandomSource.sharedRandom().nextInt(upperBound: Int(size.width))
+        opponentSprite = SKSpriteNode(imageNamed: "OpponentSprite")
+        opponentSprite.position = CGPoint(x: CGFloat(randomX), y: size.height)
+        opponentSprite.size = CGSize(width: 50, height: 70)
+        addChild(opponentSprite)
+        
+        opponentSprite.physicsBody = SKPhysicsBody(circleOfRadius: 50)
+        opponentSprite.physicsBody?.categoryBitMask = spriteCategory1
+        opponentSprite.physicsBody?.contactTestBitMask = spriteCategory1
+        opponentSprite.physicsBody?.collisionBitMask = spriteCategory1
+        
+        moveOpponent(x: randomX)
     }
     
     func touchDown(atPoint pos : CGPoint) {
